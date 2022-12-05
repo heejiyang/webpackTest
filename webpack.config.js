@@ -1,8 +1,12 @@
 const path = require('path');
 const webpack = require('webpack');
+const childProcess = require('child_process');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const {CleanWebpackPlugin} = require('clean-webpack-plugin');
+require('dotenv').config();
 
 module.exports = {
-  mode : 'development',
+  mode : process.env.NODE_ENV === 'development' ? 'development' : 'production',
 
   // 엔트리 : 모듈의 시작점
   entry : {
@@ -49,9 +53,28 @@ module.exports = {
     },
   ]
   },
+
   plugins : [
     new webpack.BannerPlugin({
-      banner : '배너입니다!!!'
+      banner:
+      `
+      Commit version : ${childProcess.execSync('git rev-parse --short HEAD')}
+      Committer : ${childProcess.execSync('git config user.name')}
+      Commit Date : ${new Date().toLocaleString()}
+      `
     }),
+
+    // 중요한 정보
+    new webpack.DefinePlugin({
+      dev: JSON.stringify(process.env.DEV_API),
+      pro: JSON.stringify(process.env.PRO_API)
+    }),
+
+    new HtmlWebpackPlugin({
+      template: './src/index.html'
+    }),
+
+    // 별도의 옵션 설정이 필요없다.
+    new CleanWebpackPlugin()
   ]
 }
